@@ -111,11 +111,11 @@
     <div class="panel">
       <div class="panel-head"><div class="dot"></div>简历 PDF</div>
       <div class="panel-body">
-        <div class="upload-zone disabled" id="uploadZone" onclick="triggerUpload()">
+        <label for="fileInput" class="upload-zone disabled" id="uploadZone" style="display:block">
           <div class="upload-icon">📄</div>
           <div class="upload-title">上传简历 PDF</div>
           <div class="upload-hint" id="uploadHint">PDF 库加载中...</div>
-        </div>
+        </label>
         <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="handleFile(this.files[0])">
         <div class="file-info" id="fileInfo" style="display:none"></div>
       </div>
