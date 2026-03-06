@@ -27,24 +27,24 @@ ${jd.slice(0, 3000)}
 }`;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
+        "Authorization": `Bearer ${process.env.ANTHROPIC_API_KEY}`,
+        
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "Qwen/Qwen2.5-72B-Instruct",
         max_tokens: 4096,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: prompt }], max_tokens: 4096,
       }),
     });
 
     const data = await response.json();
     if (data.error) return res.status(500).json({ error: data.error.message });
 
-    const text = data.content?.map(i => i.text || "").join("") || "";
+    const text = data.choices?.[0]?.message?.content || "";
     const clean = text.replace(/```json|```/g, "").trim();
     const result = JSON.parse(clean);
     res.status(200).json(result);
