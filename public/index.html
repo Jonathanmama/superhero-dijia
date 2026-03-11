@@ -5,10 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>简历×JD 匹配分析仪</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js">  function exportPDF() {
-    document.getElementById('exportBtn').style.display = 'none';
-    document.title = '简历JD匹配分析报告';
-    setTimeout(() => { window.print(); }, 200);
-    setTimeout(() => { document.getElementById('exportBtn').style.display = 'block'; }, 1000);
+    const btn = document.getElementById('exportBtn');
+    const results = document.getElementById('results');
+    btn.style.display = 'none';
+    
+    import('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js').then(() => {
+      html2pdf().set({
+        margin: 10,
+        filename: '简历JD匹配分析报告.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(results).save().then(() => {
+        btn.style.display = 'block';
+      });
+    }).catch(() => {
+      window.print();
+      btn.style.display = 'block';
+    });
   }
 </script>
 <style>
@@ -127,7 +141,7 @@
     <div class="panel">
       <div class="panel-head"><div class="dot"></div>简历 PDF</div>
       <div class="panel-body">
-        <label for="fileInput" class="upload-zone disabled" id="uploadZone" style="display:block">
+        <label for="fileInput" class="upload-zone disabled" id="uploadZone" style="display:block" onclick="document.getElementById('fileInput').click();return false;">
           <div class="upload-icon">📄</div>
           <div class="upload-title">上传简历 PDF</div>
           <div class="upload-hint" id="uploadHint">PDF 库加载中...</div>
