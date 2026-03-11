@@ -37,7 +37,9 @@ ${jd.slice(0, 3000)}
       body: JSON.stringify({
         model: "Qwen/Qwen2.5-72B-Instruct",
         max_tokens: 4096,
+        temperature: 0,
         messages: [{ role: "user", content: prompt }], max_tokens: 4096,
+        temperature: 0,
       }),
     });
 
