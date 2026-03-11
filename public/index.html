@@ -5,12 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>简历×JD 匹配分析仪</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js">  function exportPDF() {
-    const btn = document.getElementById('exportBtn');
-    btn.style.display = 'none';
-    setTimeout(() => {
-      window.print();
-      btn.style.display = 'block';
-    }, 100);
+    document.getElementById('exportBtn').style.display = 'none';
+    document.title = '简历JD匹配分析报告';
+    setTimeout(() => { window.print(); }, 200);
+    setTimeout(() => { document.getElementById('exportBtn').style.display = 'block'; }, 1000);
   }
 </script>
 <style>
