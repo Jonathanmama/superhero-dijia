@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>简历×JD 匹配分析仪</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js">  function exportPDF() {
+    window.print();
+  }
+</script>
 <style>
   :root {
     --ink: #12100e; --paper: #f7f3ec; --cream: #ede8de; --red: #b5321e;
@@ -89,6 +92,16 @@
   ul.bullets li:last-child { border-bottom: none; }
   ul.bullets li::before { content: '—'; position: absolute; left: 0; color: var(--gold); font-family: monospace; }
 
+  .export-btn { display:none; margin: 24px 0 0; width:100%; padding:14px; background:#2e7d32; color:#fff; border:none; font-size:15px; font-weight:700; cursor:pointer; border-radius:3px; letter-spacing:0.06em; }
+  .export-btn:hover { background:#1b5e20; }
+  .export-btn.show { display:block; }
+  @media print {
+    header, .grid, #analyzeBtn, .progress, .error-box, .export-btn { display:none !important; }
+    body { background:#fff; }
+    #results { display:block !important; margin-top:0; }
+    .cards { grid-template-columns:1fr 1fr; }
+    .card { break-inside:avoid; }
+  }
   @media(max-width: 680px) {
     .grid, .cards { grid-template-columns: 1fr; }
     .card.full { grid-column: auto; }
@@ -145,6 +158,7 @@
     </div>
     <div class="score-bar-track"><div class="score-bar-fill" id="scoreBar" style="width:0"></div></div>
     <div class="cards" id="cards"></div>
+  <button class="export-btn" id="exportBtn" onclick="exportPDF()">📄 导出分析报告 PDF</button>
   </div>
 </div>
 
@@ -280,7 +294,7 @@
         <div class="card-body"><ul class="bullets">${(r.interview_tips||[]).map(s=>`<li>${s}</li>`).join('')}</ul></div>
       </div>
     `;
-    document.getElementById('results').classList.add('show');
+    document.getElementById('results').classList.add('show'); document.getElementById('exportBtn').classList.add('show');
     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 </script>
