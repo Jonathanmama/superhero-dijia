@@ -1,1 +1,319 @@
-404: Not Found
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>简历×JD 匹配分析仪</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js">  function exportPDF() {
+    const btn = document.getElementById('exportBtn');
+    const results = document.getElementById('results');
+    btn.style.display = 'none';
+    
+    import('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js').then(() => {
+      html2pdf().set({
+        margin: 10,
+        filename: '简历JD匹配分析报告.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(results).save().then(() => {
+        btn.style.display = 'block';
+      });
+    }).catch(() => {
+      window.print();
+      btn.style.display = 'block';
+    });
+  }
+</script>
+<style>
+  :root {
+    --ink: #12100e; --paper: #f7f3ec; --cream: #ede8de; --red: #b5321e;
+    --gold: #c4952a; --muted: #7a6e5f; --border: #d0c9bc; --card: #faf8f3;
+    --green: #2e7d32; --green-bg: #e8f5e9; --red-bg: #fce4ec;
+    --warn-bg: #fff8e1; --warn: #e65100;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: 'PingFang SC','Microsoft YaHei',sans-serif; font-weight: 300; min-height: 100vh; }
+
+  header { border-bottom: 2px solid var(--ink); padding: 26px 40px 20px; display: flex; align-items: baseline; gap: 16px; }
+  .logo { font-size: 26px; font-weight: 700; }
+  .logo span { color: var(--red); }
+  .tagline { font-family: monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
+  .pdf-status { margin-left: auto; font-size: 12px; }
+
+  .container { max-width: 1000px; margin: 0 auto; padding: 36px 24px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 26px; }
+
+  .panel { border: 1px solid var(--border); border-radius: 3px; overflow: hidden; background: var(--card); }
+  .panel-head { background: var(--ink); color: var(--paper); padding: 11px 18px; font-family: monospace; font-size: 11px; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); display: inline-block; }
+  .panel-body { padding: 18px; }
+
+  .upload-zone { border: 2px dashed var(--border); border-radius: 3px; padding: 32px 16px; text-align: center; cursor: pointer; background: var(--paper); transition: all 0.2s; }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--gold); background: #fdf9f0; }
+  .upload-zone.disabled { opacity: 0.6; cursor: default; }
+  .upload-icon { font-size: 30px; margin-bottom: 8px; }
+  .upload-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .upload-hint { font-size: 12px; color: var(--muted); }
+
+  .file-info { margin-top: 10px; padding: 8px 12px; font-size: 12px; font-family: monospace; border-left: 3px solid; }
+  .file-info.ok { background: var(--green-bg); color: var(--green); border-color: #4caf50; }
+  .file-info.err { background: var(--red-bg); color: var(--red); border-color: var(--red); }
+  .file-info.loading { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); }
+
+  textarea { width: 100%; min-height: 190px; border: 1px solid var(--border); border-radius: 2px; padding: 12px 14px; font-family: inherit; font-size: 13px; font-weight: 300; color: var(--ink); background: var(--paper); resize: vertical; line-height: 1.8; outline: none; transition: border-color 0.2s; }
+  textarea:focus { border-color: var(--gold); }
+
+  .btn { width: 100%; padding: 17px; background: var(--ink); color: var(--paper); border: none; font-size: 17px; font-weight: 700; cursor: pointer; border-radius: 3px; letter-spacing: 0.06em; transition: background 0.2s; }
+  .btn:hover:not(:disabled) { background: #2d2316; }
+  .btn:disabled { background: var(--border); cursor: not-allowed; }
+
+  .progress { margin-top: 10px; height: 3px; background: var(--cream); border-radius: 2px; overflow: hidden; display: none; }
+  .progress.active { display: block; }
+  .progress-bar { height: 100%; width: 38%; background: linear-gradient(90deg, var(--gold), var(--red)); animation: slide 1.2s ease-in-out infinite; }
+  @keyframes slide { 0%{transform:translateX(-250%)} 100%{transform:translateX(400%)} }
+
+  .error-box { margin-top: 12px; padding: 11px 15px; background: var(--red-bg); border-left: 4px solid var(--red); font-size: 13px; color: var(--red); display: none; }
+  .error-box.show { display: block; }
+
+  /* Results */
+  #results { margin-top: 44px; display: none; }
+  #results.show { display: block; animation: up 0.4s ease; }
+  @keyframes up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+  .results-head { border-bottom: 2px solid var(--ink); padding-bottom: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .results-title { font-size: 22px; font-weight: 700; }
+  .score-wrap { display: flex; align-items: center; gap: 12px; }
+  .score-num { font-family: monospace; font-size: 50px; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  .score-bar-track { height: 7px; background: var(--cream); border-radius: 4px; overflow: hidden; margin-bottom: 28px; }
+  .score-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--gold), var(--red)); transition: width 1s ease; }
+
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .card { border: 1px solid var(--border); border-radius: 3px; overflow: hidden; background: var(--card); }
+  .card.full { grid-column: 1 / -1; }
+  .card-head { padding: 11px 18px; border-bottom: 1px solid var(--border); background: #f0ece2; display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 700; }
+  .card-body { padding: 18px; font-size: 13px; line-height: 1.9; color: #2a221a; }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { padding: 3px 10px; font-size: 11px; font-family: monospace; border-radius: 2px; display: inline-block; }
+  .tag.match { background: var(--green-bg); color: var(--green); border: 1px solid #a5d6a7; }
+  .tag.miss { background: var(--red-bg); color: var(--red); border: 1px solid #f48fb1; }
+
+  .divider { height: 1px; background: var(--border); margin: 10px 0; }
+  .sub-label { font-size: 10px; font-family: monospace; color: var(--muted); margin-bottom: 7px; letter-spacing: 0.08em; }
+
+  ul.bullets { list-style: none; padding: 0; margin: 0; }
+  ul.bullets li { padding: 7px 0 7px 18px; border-bottom: 1px solid var(--cream); position: relative; }
+  ul.bullets li:last-child { border-bottom: none; }
+  ul.bullets li::before { content: '—'; position: absolute; left: 0; color: var(--gold); font-family: monospace; }
+
+  .export-btn { display:none; margin: 24px 0 0; width:100%; padding:14px; background:#2e7d32; color:#fff; border:none; font-size:15px; font-weight:700; cursor:pointer; border-radius:3px; letter-spacing:0.06em; }
+  .export-btn:hover { background:#1b5e20; }
+  .export-btn.show { display:block; }
+  @media print {
+    header, .grid, #analyzeBtn, .progress, .error-box, .export-btn { display:none !important; }
+    body { background:#fff; }
+    #results { display:block !important; margin-top:0; }
+    .cards { grid-template-columns:1fr 1fr; }
+    .card { break-inside:avoid; }
+  }
+  @media(max-width: 680px) {
+    .grid, .cards { grid-template-columns: 1fr; }
+    .card.full { grid-column: auto; }
+    header { padding: 20px 16px; flex-wrap: wrap; }
+    .container { padding: 24px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">简历<span>×</span>JD</div>
+  <div class="tagline">RESUME · JD MATCH ANALYZER</div>
+  <div class="pdf-status" id="pdfStatus" style="color:var(--muted)">⏳ 加载中...</div>
+</header>
+
+<div class="container">
+  <div class="grid">
+    <!-- PDF -->
+    <div class="panel">
+      <div class="panel-head"><div class="dot"></div>简历 PDF</div>
+      <div class="panel-body">
+        <label for="fileInput" class="upload-zone disabled" id="uploadZone" style="display:block" onclick="document.getElementById('fileInput').click();return false;">
+          <div class="upload-icon">📄</div>
+          <div class="upload-title">上传简历 PDF</div>
+          <div class="upload-hint" id="uploadHint">PDF 库加载中...</div>
+        </label>
+        <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="handleFile(this.files[0])">
+        <div class="file-info" id="fileInfo" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- JD -->
+    <div class="panel">
+      <div class="panel-head"><div class="dot"></div>职位描述 JD</div>
+      <div class="panel-body">
+        <textarea id="jdInput" placeholder="将招聘 JD 粘贴到这里...&#10;&#10;建议粘贴完整内容，包含职责和要求，分析更准确。"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn" id="analyzeBtn" onclick="analyze()" disabled>🔍 开始深度分析</button>
+  <div class="progress" id="progress"><div class="progress-bar"></div></div>
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="results-head">
+      <div class="results-title">分析报告</div>
+      <div class="score-wrap">
+        <div class="score-num" id="scoreNum">—</div>
+        <div class="score-label">综合匹配度<br><span style="font-family:monospace;font-size:10px">/100</span></div>
+      </div>
+    </div>
+    <div class="score-bar-track"><div class="score-bar-fill" id="scoreBar" style="width:0"></div></div>
+    <div class="cards" id="cards"></div>
+  <button class="export-btn" id="exportBtn" onclick="exportPDF()">📄 导出分析报告 PDF</button>
+  </div>
+</div>
+
+<script>
+  let resumeText = '';
+  let pdfReady = false;
+
+  // Init PDF.js
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+  pdfReady = true;
+  document.getElementById('pdfStatus').textContent = '✓ PDF 库就绪';
+  document.getElementById('pdfStatus').style.color = 'var(--green)';
+  document.getElementById('uploadZone').classList.remove('disabled');
+  document.getElementById('uploadHint').textContent = '点击或拖拽文件到此处';
+
+  // Drag & drop
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handleFile(e.dataTransfer.files[0]); });
+
+  function triggerUpload() {
+    if (pdfReady) document.getElementById('fileInput').click();
+  }
+
+  async function handleFile(file) {
+    if (!file || file.type !== 'application/pdf') { showError('请上传 PDF 格式文件'); return; }
+    const info = document.getElementById('fileInfo');
+    info.style.display = 'block';
+    info.className = 'file-info loading';
+    info.textContent = '⏳ 读取中...';
+    resumeText = '';
+    try {
+      const ab = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(ab) }).promise;
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(it => it.str).join(' ') + '\n';
+      }
+      const trimmed = text.trim();
+      if (!trimmed) { info.className = 'file-info err'; info.textContent = '⚠️ 无法提取文字（可能是扫描图片版 PDF）'; return; }
+      resumeText = trimmed;
+      info.className = 'file-info ok';
+      info.textContent = `✅ ${file.name}（${pdf.numPages} 页，${trimmed.length} 字符）`;
+      document.getElementById('analyzeBtn').disabled = false;
+    } catch(e) {
+      info.className = 'file-info err';
+      info.textContent = '❌ 读取失败：' + e.message;
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorBox');
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  async function analyze() {
+    const jd = document.getElementById('jdInput').value.trim();
+    if (!resumeText) return showError('请先成功上传简历 PDF');
+    if (!jd) return showError('请粘贴职位描述 JD');
+
+    document.getElementById('analyzeBtn').disabled = true;
+    document.getElementById('progress').classList.add('active');
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('errorBox').classList.remove('show');
+
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resumeText, jd })
+      });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      renderResults(result);
+    } catch(e) {
+      showError('分析失败：' + e.message);
+    } finally {
+      document.getElementById('analyzeBtn').disabled = false;
+      document.getElementById('progress').classList.remove('active');
+    }
+  }
+
+  function renderResults(r) {
+    const score = r.score || 0;
+    const color = score >= 75 ? '#4caf50' : score >= 50 ? '#ff9800' : '#b5321e';
+    document.getElementById('scoreNum').textContent = score;
+    document.getElementById('scoreNum').style.color = color;
+    setTimeout(() => document.getElementById('scoreBar').style.width = score + '%', 50);
+
+    document.getElementById('cards').innerHTML = `
+      <div class="card">
+        <div class="card-head">🎯 关键词匹配</div>
+        <div class="card-body">
+          <div class="sub-label">已匹配 ✓</div>
+          <div class="tag-row">${(r.matched_keywords||[]).map(k=>`<span class="tag match">${k}</span>`).join('')}</div>
+          <div class="divider"></div>
+          <div class="sub-label">缺失 ✗</div>
+          <div class="tag-row">${(r.missing_keywords||[]).map(k=>`<span class="tag miss">${k}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">📊 匹配总结</div>
+        <div class="card-body">
+          <p style="margin-bottom:12px">${r.score_summary||''}</p>
+          <div class="divider"></div>
+          <div class="sub-label">公司文化线索</div>
+          <p style="font-style:italic;color:var(--muted)">${r.company_culture||''}</p>
+        </div>
+      </div>
+      <div class="card full">
+        <div class="card-head">✏️ 简历修改建议</div>
+        <div class="card-body"><ul class="bullets">${(r.resume_suggestions||[]).map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      </div>
+      <div class="card">
+        <div class="card-head">👤 他们真正想要的人</div>
+        <div class="card-body">
+          <p style="margin-bottom:12px">${r.ideal_candidate||''}</p>
+          <div class="divider"></div>
+          <div class="sub-label">隐性要求</div>
+          <ul class="bullets">${(r.hidden_requirements||[]).map(s=>`<li>${s}</li>`).join('')}</ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">⚠️ 这份 JD 的坑</div>
+        <div class="card-body"><ul class="bullets">${(r.red_flags||[]).map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      </div>
+      <div class="card full">
+        <div class="card-head">💬 面试备战建议</div>
+        <div class="card-body"><ul class="bullets">${(r.interview_tips||[]).map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      </div>
+    `;
+    document.getElementById('results').classList.add('show'); document.getElementById('exportBtn').classList.add('show');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+</script>
+</body>
+</html>
